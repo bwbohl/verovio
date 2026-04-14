@@ -20,7 +20,63 @@
     <plugins>
       <plugin>
         <artifactId>maven-antrun-plugin</artifactId>
+        <version>3.2.0</version>
         <executions>
+
+          <!-- generate-sources:
+               1. Write include/vrv/git_commit.h from current git SHA.
+               2. Regenerate swig Java bindings (failonerror=false — if swig is not installed,
+                  the already-committed sources and verovio_wrap.cxx are used instead). -->
+          <execution>
+            <id>generate-sources</id>
+            <phase>generate-sources</phase>
+            <goals>
+              <goal>run</goal>
+            </goals>
+            <configuration>
+              <target>
+                <!-- Resolve git commit SHA (fails gracefully if not in a git repo) -->
+                <exec executable="git" dir="${project.basedir}/../.."
+                      outputproperty="git.sha" failonerror="false">
+                  <arg value="describe"/>
+                  <arg value="--exclude"/><arg value="*"/>
+                  <arg value="--abbrev=7"/>
+                  <arg value="--always"/>
+                  <arg value="--dirty"/>
+                </exec>
+                <condition property="git.commit.define" value="-${git.sha}" else="">
+                  <and>
+                    <isset property="git.sha"/>
+                    <not><equals arg1="${git.sha}" arg2=""/></not>
+                  </and>
+                </condition>
+                <echo file="${project.basedir}/../../include/vrv/git_commit.h">////////////////////////////////////////////////////////
+/// Git commit version file generated at compilation ///
+////////////////////////////////////////////////////////
+
+#define GIT_COMMIT "${git.commit.define}"
+</echo>
+
+                <!-- Regenerate swig bindings -->
+                <mkdir dir="${project.basedir}/src/main/java/org/rismch/verovio"/>
+                <exec dir="${project.basedir}" executable="swig" failonerror="true">
+                  <arg value="-c++"/>
+                  <arg value="-java"/>
+                  <arg value="-package"/>
+                  <arg value="org.rismch.verovio"/>
+                  <arg value="-outdir"/>
+                  <arg value="${project.basedir}/src/main/java/org/rismch/verovio"/>
+                  <arg value="verovio.i"/>
+                </exec>
+              </target>
+            </configuration>
+          </execution>
+
+          <!-- process-classes:
+               Compile the native JNI library with g++ and embed it in the JAR.
+               The <mkdir> here (after compiler:compile) is required because
+               maven-compiler-plugin reinitialises target/classes/ during compile,
+               wiping any subdirectories created in earlier phases. -->
           <execution>
             <id>build-native</id>
             <phase>process-classes</phase>
@@ -29,12 +85,69 @@
             </goals>
             <configuration>
               <target>
-                <property name="native.classpath" refid="maven.compile.classpath" />
-                <echo file="${project.build.directory}/compile-classpath" message="${native.classpath}" />
-                <exec dir="." executable="./build.sh" failonerror="true" />
+                <mkdir dir="${project.build.outputDirectory}/META-INF/lib"/>
+
+                <!-- Platform detection: JNI include subdir and native lib extension -->
+                <condition property="jni.include.subdir" value="darwin">
+                  <os family="mac"/>
+                </condition>
+                <condition property="jni.include.subdir" value="linux">
+                  <and><os family="unix"/><not><os family="mac"/></not></and>
+                </condition>
+                <condition property="jni.lib.ext" value="jnilib">
+                  <os family="mac"/>
+                </condition>
+                <condition property="jni.lib.ext" value="so">
+                  <and><os family="unix"/><not><os family="mac"/></not></and>
+                </condition>
+
+                <!-- Collect *.cpp from src/, libmei/dist/, libmei/addons/ (direct children only) -->
+                <pathconvert property="cpp.sources" pathsep=" ">
+                  <fileset dir="${project.basedir}/../.."
+                           includes="src/*.cpp,libmei/dist/*.cpp,libmei/addons/*.cpp"/>
+                </pathconvert>
+
+                <!-- Compile native library -->
+                <exec dir="${project.basedir}" executable="g++" failonerror="true">
+                  <arg value="-shared"/>
+                  <arg value="-o"/><arg value="target/libverovio.${jni.lib.ext}"/>
+                  <arg value="-g"/>
+                  <arg value="-fpic"/>
+                  <arg value="-std=c++20"/>
+                  <arg value="-I${project.basedir}/../../include"/>
+                  <arg value="-I${project.basedir}/../../include/vrv"/>
+                  <arg value="-I${project.basedir}/../../include/json"/>
+                  <arg value="-I${project.basedir}/../../include/hum"/>
+                  <arg value="-I${project.basedir}/../../include/crc"/>
+                  <arg value="-I${project.basedir}/../../include/midi"/>
+                  <arg value="-I${project.basedir}/../../include/pugi"/>
+                  <arg value="-I${project.basedir}/../../include/zip"/>
+                  <arg value="-I${project.basedir}/../../include/tuning-library"/>
+                  <arg value="-I${project.basedir}/../../libmei/addons"/>
+                  <arg value="-I${project.basedir}/../../libmei/dist"/>
+                  <arg value="-I/opt/local/include"/>
+                  <arg value="-I${java.home}/include"/>
+                  <arg value="-I${java.home}/include/${jni.include.subdir}"/>
+                  <arg line="${cpp.sources}"/>
+                  <arg value="${project.basedir}/../../src/pugi/pugixml.cpp"/>
+                  <arg value="${project.basedir}/../../src/midi/Binasc.cpp"/>
+                  <arg value="${project.basedir}/../../src/midi/MidiEvent.cpp"/>
+                  <arg value="${project.basedir}/../../src/midi/MidiEventList.cpp"/>
+                  <arg value="${project.basedir}/../../src/midi/MidiFile.cpp"/>
+                  <arg value="${project.basedir}/../../src/midi/MidiMessage.cpp"/>
+                  <arg value="${project.basedir}/../../src/hum/humlib.cpp"/>
+                  <arg value="${project.basedir}/../../src/json/jsonxx.cc"/>
+                  <arg value="${project.basedir}/../../src/crc/crc.cpp"/>
+                  <arg value="verovio_wrap.cxx"/>
+                </exec>
+
+                <!-- Copy into JAR resources — always as .jnilib to match VerovioRenderer.java -->
+                <copy file="${project.basedir}/target/libverovio.${jni.lib.ext}"
+                      tofile="${project.build.outputDirectory}/META-INF/lib/libverovio.jnilib"/>
               </target>
             </configuration>
           </execution>
+
         </executions>
       </plugin>
     </plugins>
