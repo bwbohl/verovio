@@ -8,7 +8,7 @@
   <version>6.1.0</version>
   <packaging>jar</packaging>
 
-  <name>VerovioToolkit</name>
+  <name>Verovio Toolkit Java</name>
   <url>https://www.verovio.org</url>
 
   <properties>
