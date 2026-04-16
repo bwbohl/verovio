@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<site xmlns="http://maven.apache.org/SITE/2.1.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xsi:schemaLocation="http://maven.apache.org/SITE/2.1.0 https://maven.apache.org/xsd/site-2.1.0.xsd"
+  name="Verovio Java Bindings">
+  <skin>
+    <groupId>org.apache.maven.skins</groupId>
+    <artifactId>maven-fluido-skin</artifactId>
+    <version>2.1.0</version>
+  </skin>
+  <body>
+    <menu name="External Verovio Documentation">
+      <item name="Verovio Home" href="https://www.verovio.org/index.xhtml"/>
+      <item name="Reference book: Java and Android" href="https://book.verovio.org/installing-or-building-from-sources/java-and-android.html"/>
+      <item name="GitHub repository" href="https://github.com/rism-digital/verovio"/>
+    </menu>
+  </body>
+</site>
