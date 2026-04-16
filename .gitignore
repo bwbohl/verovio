@@ -49,7 +49,7 @@ verovio.egg-info
 # java build
 bindings/java/verovio_wrap.cxx
 bindings/java/main.class
-bindings/java/src/
+bindings/java/src/main/
 bindings/java/target/
 main.class
 leipzig-5.2.log
