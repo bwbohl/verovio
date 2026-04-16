@@ -11,6 +11,13 @@
   <name>Verovio Toolkit Java</name>
   <url>https://www.verovio.org</url>
 
+  <distributionManagement>
+    <site>
+      <id>music-encoding-site</id>
+      <url>https://music-encoding.org/oXygen-MEI-addon/MEI-oXygen-plugins/verovio-toolkit</url>
+    </site>
+  </distributionManagement>
+
   <properties>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     <maven.compiler.release>9</maven.compiler.release>
