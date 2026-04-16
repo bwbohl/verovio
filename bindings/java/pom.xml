@@ -3,6 +3,14 @@
   xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
   <modelVersion>4.0.0</modelVersion>
 
+  <!-- MEI fork only: parent required for maven site:stage to resolve staging path -->
+  <parent>
+    <groupId>org.music_encoding</groupId>
+    <artifactId>MEI-oXygen-plugins</artifactId>
+    <version>1.0.0-develop</version>
+    <relativePath>../../pom.xml</relativePath>
+  </parent>
+
   <groupId>digital.rism.verovio</groupId>
   <artifactId>VerovioToolkit</artifactId>
   <version>6.1.0</version>
