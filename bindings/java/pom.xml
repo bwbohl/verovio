@@ -29,7 +29,7 @@
   <properties>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     <maven.compiler.release>9</maven.compiler.release>
-    <skipNativeBuild>false</skipNativeBuild>
+    <skipVerovioNativeBuild>false</skipVerovioNativeBuild>
   </properties>
 
   <build>
@@ -62,7 +62,7 @@
               <goal>run</goal>
             </goals>
             <configuration>
-              <skip>${skipNativeBuild}</skip>
+              <skip>${skipVerovioNativeBuild}</skip>
               <target>
                 <!-- Resolve git commit SHA (fails gracefully if not in a git repo) -->
                 <exec executable="git" dir="${project.basedir}/../.."
@@ -113,7 +113,7 @@
               <goal>run</goal>
             </goals>
             <configuration>
-              <skip>${skipNativeBuild}</skip>
+              <skip>${skipVerovioNativeBuild}</skip>
               <target>
                 <mkdir dir="${project.build.outputDirectory}/META-INF/lib"/>
 
